@@ -19,9 +19,6 @@ class SqueezeBoxServer():
 		self.session_id = None
 		self.player_id = None
 		self.server_url = "http://%s:%s/jsonrpc.js" % (self.host, self.port)
-
-
-
 		return
 
 	def getLoginUrl(self, username, password):
@@ -58,23 +55,13 @@ class SqueezeBoxServer():
 		params = simplejson.dumps({'id':1, 'method':'slim.request', 'params':[self.player_id, list(args)]})
 		cookies = dict(sdi_squeezenetwork_session=self.session_id)
 		r = requests.post(self.server_url, data=params, cookies=cookies)
-#		req = urllib2.Request(self.server_url, params)
-#		response = urllib2.urlopen(req)
-#		response_txt = response.read()
-#		print(response_txt)
-#		return simplejson.loads(response_txt)['result']
 		response_text = r.text
-#		print response_text
 		return response_text
 
 
 	def play(self, *args):
-#		self.artists = self.query( "players", 0, 9999)
-#		self.artists = self.query( "artists", 0, 9999)['artists_loop']
-
 		# https://github.com/Logitech/slimserver/blob/eeeb701d7de3ae2790c359cbd67a4c438c66bf2b/Slim/Control/Request.pm#L527
 		print self.query( "mode", "?" )
-
 		print self.query( "sleep", "?" )
 		print self.query( "power", "?" )
 		print self.query( "time", "?" )
@@ -153,17 +140,17 @@ if __name__ == '__main__':
 		print 'usage: msb.com.py -u email -p password'
 		sys.exit(2)
 
-	user1 = 1
-	pass1 = 1
+	login = None
+	password = None
 	for opt, arg in opts:
 		if opt == '-h':
 			print 'usage: msb.com.py -u email -p password'
 			sys.exit()
 		elif opt in ("-u", "--user"):
-			user1 = arg
+			login = arg
 		elif opt in ("-p", "--password"):
-			pass1 = arg
+			password = arg
 
 	msb = SqueezeBoxServer(host="mysqueezebox.com",port=80)
-	msb.login(user1, pass1)
+	msb.login(login, password)
 	msb.play()
