@@ -1,6 +1,7 @@
 #! /usr/bin/python
 
 
+import sys, getopt
 import time, base64, hashlib
 import urllib, urllib2, requests
 import simplejson
@@ -19,29 +20,6 @@ class SqueezeBoxServer():
 		self.session_id = 1
 		self.server_url = "http://%s:%s/jsonrpc.js" % (self.host, self.port)
 
-		self.session_id = self.login("me@gmail.com", "pass")
-
-#		self.artists = self.query( "players", 0, 9999)
-#		self.artists = self.query( "artists", 0, 9999)['artists_loop']
-
-		# https://github.com/Logitech/slimserver/blob/eeeb701d7de3ae2790c359cbd67a4c438c66bf2b/Slim/Control/Request.pm#L527
-		print self.query( "mode", "?" )
-
-		print self.query( "sleep", "?" )
-		print self.query( "power", "?" )
-		print self.query( "time", "?" )
-		print self.query( "version", "?" )
-		print self.query( "artist", "?" )
-		print self.query( "title", "?" )
-		print self.query( "album", "?" )
-
-		status = self.query( "status" )
-		st = simplejson.loads(status)
-		rm = st[u'result'][u'remoteMeta']
-		album = rm[u'album']
-		artist = rm[u'artist']
-		title = rm[u'title']
-		print 'playing: ', artist, '-', title, '-', album
 
 
 		return
@@ -69,6 +47,7 @@ class SqueezeBoxServer():
 		return base64.b64encode(hashlib.sha1(text).digest())[0:-1]
 
 	def login(self, email, password):
+		print  {"email":email, "password":password}
 		r = requests.post("http://mysqueezebox.com/user/login", data = {"email":email, "password":password})
 #		print "sdi_squeezenetwork_session", r.text
 		self.session_id = r.cookies['sdi_squeezenetwork_session']
@@ -89,6 +68,32 @@ class SqueezeBoxServer():
 		response_text = r.text
 #		print response_text
 		return response_text
+
+
+	def play(self, *args):
+#		self.artists = self.query( "players", 0, 9999)
+#		self.artists = self.query( "artists", 0, 9999)['artists_loop']
+
+		# https://github.com/Logitech/slimserver/blob/eeeb701d7de3ae2790c359cbd67a4c438c66bf2b/Slim/Control/Request.pm#L527
+		print self.query( "mode", "?" )
+
+		print self.query( "sleep", "?" )
+		print self.query( "power", "?" )
+		print self.query( "time", "?" )
+		print self.query( "version", "?" )
+		print self.query( "artist", "?" )
+		print self.query( "title", "?" )
+		print self.query( "album", "?" )
+
+		status = self.query( "status" )
+		st = simplejson.loads(status)
+		rm = st[u'result'][u'remoteMeta']
+		album = rm[u'album']
+		artist = rm[u'artist']
+		title = rm[u'title']
+		print 'playing: ', artist, '-', title, '-', album
+		return
+
 		
 	def setVolume(self, volume):
 		self.query("mixer", "volume", volume)
@@ -128,31 +133,28 @@ class SqueezeBoxServer():
 		return self.query("favorites", "items", 0, 99)['loop_loop'][radio]['name']
 	
 
-
-class App(threading.Thread):
 	
-	def __init__(self):    
-		self.current_artist=0
-		self.current_artist_album_count=0
-		self.current_radio=0
-		self.current_album=0
-		self.left=False
-		self.right=False
-		self.push=False
-		self.back=False
-		self.level="root"
-		self.cursor=0
-		self.sbs = SqueezeBoxServer(host="mysqueezebox.com",port=80, player_id="00:04:20:28:bd:1e")
-#		self.sbs.setVolume(30)
-#		print self.sbs.getCurrentSongTitle()
-		self.paused = False
-		threading.Thread.__init__(self)
-		
 		
 
 
 if __name__ == '__main__':
-	ui = App()
-	ui.start() 
-	q = str(raw_input('Press ENTER to quit program\n'))
-	ui.Stop()
+	try:
+		opts, args = getopt.getopt(sys.argv[1:],"hu:p:",["user=","password="])
+	except getopt.GetoptError:
+		print 'usage: msb.com.py -u email -p password'
+		sys.exit(2)
+
+	user1 = 1
+	pass1 = 1
+	for opt, arg in opts:
+		if opt == '-h':
+			print 'test.py -i <inputfile> -o <outputfile>'
+			sys.exit()
+		elif opt in ("-u", "--user"):
+			user1 = arg
+		elif opt in ("-p", "--password"):
+			pass1 = arg
+
+	msb = SqueezeBoxServer(host="mysqueezebox.com",port=80, player_id="00:04:20:28:bd:1e")
+	msb.login(user1, pass1)
+	msb.play()
