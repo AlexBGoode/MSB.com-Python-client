@@ -13,26 +13,15 @@ import subprocess
 # Class qui gere toutes les communications avec le serveur squeezebox
 class SqueezeBoxServer():
 
-	def __init__(self, host="127.0.0.1", port=9000, player_id=""):
+	def __init__(self, host="127.0.0.1", port=9000):
 		self.host = host
 		self.port = port
-		self.player_id = player_id
-		self.session_id = 1
+		self.session_id = None
+		self.player_id = None
 		self.server_url = "http://%s:%s/jsonrpc.js" % (self.host, self.port)
 
 
 
-		return
-		print self.query( "alarms", 0, 9999)
-		print self.query( "serverstatus", 0, 9999)
-		print self.query( "version", "?") # 7.7.6
-		print self.query( "status", "1")
-#		print self.query( "mode", "pause")
-#		print self.query( "power", "off")
-		print self.query( "power", "1")
-		print self.query( "mode", "play")
-		print self.query( "playlist", "index", 1)
-#		print self.query( "mixer", "volume", 20)
 		return
 
 	def getLoginUrl(self, username, password):
@@ -50,9 +39,18 @@ class SqueezeBoxServer():
 		print  {"email":email, "password":password}
 		r = requests.post("http://mysqueezebox.com/user/login", data = {"email":email, "password":password})
 #		print "sdi_squeezenetwork_session", r.text
+		# session_id is the auth token for all further calls
 		self.session_id = r.cookies['sdi_squeezenetwork_session']
-		print 'sdi_squeezenetwork_session', self.session_id
-#		user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.80 Safari/537.36"
+#		print 'sdi_squeezenetwork_session', self.session_id
+
+		# looking for player_id
+		cookies = dict(sdi_squeezenetwork_session=self.session_id)
+		r = requests.post("http://www.mysqueezebox.com/api/v1/players", cookies=cookies)
+		resp = r.text
+#		print resp
+		pl = simplejson.loads(resp)
+		self.player_id = pl['players'][0][u'mac']
+#		print self.player_id
 		return self.session_id		
 
 
@@ -81,9 +79,9 @@ class SqueezeBoxServer():
 		print self.query( "power", "?" )
 		print self.query( "time", "?" )
 		print self.query( "version", "?" )
-		print self.query( "artist", "?" )
-		print self.query( "title", "?" )
-		print self.query( "album", "?" )
+#		print self.query( "artist", "?" )
+#		print self.query( "title", "?" )
+#		print self.query( "album", "?" )
 
 		status = self.query( "status" )
 		st = simplejson.loads(status)
@@ -94,6 +92,17 @@ class SqueezeBoxServer():
 		print 'playing: ', artist, '-', title, '-', album
 		return
 
+		print self.query( "alarms", 0, 9999)
+		print self.query( "serverstatus", 0, 9999)
+		print self.query( "version", "?") # 7.7.6
+		print self.query( "status", "1")
+#		print self.query( "mode", "pause")
+#		print self.query( "power", "off")
+		print self.query( "power", "1")
+		print self.query( "mode", "play")
+		print self.query( "playlist", "index", 1)
+#		print self.query( "mixer", "volume", 20)
+		return
 		
 	def setVolume(self, volume):
 		self.query("mixer", "volume", volume)
@@ -148,13 +157,13 @@ if __name__ == '__main__':
 	pass1 = 1
 	for opt, arg in opts:
 		if opt == '-h':
-			print 'test.py -i <inputfile> -o <outputfile>'
+			print 'usage: msb.com.py -u email -p password'
 			sys.exit()
 		elif opt in ("-u", "--user"):
 			user1 = arg
 		elif opt in ("-p", "--password"):
 			pass1 = arg
 
-	msb = SqueezeBoxServer(host="mysqueezebox.com",port=80, player_id="00:04:20:28:bd:1e")
+	msb = SqueezeBoxServer(host="mysqueezebox.com",port=80)
 	msb.login(user1, pass1)
 	msb.play()
