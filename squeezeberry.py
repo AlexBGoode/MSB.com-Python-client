@@ -44,9 +44,15 @@ class SqueezeBoxServer():
 		cookies = dict(sdi_squeezenetwork_session=self.session_id)
 		r = requests.post("http://www.mysqueezebox.com/api/v1/players", cookies=cookies)
 		resp = r.text
-#		print resp
+		print '.'
+		print resp
+		print '.'
 		pl = simplejson.loads(resp)
-		self.player_id = pl['players'][0][u'mac']
+		if (pl['players'] != []):
+			self.player_id = pl['players'][0]['mac']
+		elif (pl['inactive_players'] != []):
+			self.player_id = pl['inactive_players'][0]['mac']
+
 #		print self.player_id
 		return self.session_id		
 
@@ -72,11 +78,15 @@ class SqueezeBoxServer():
 
 		status = self.query( "status" )
 		st = simplejson.loads(status)
-		rm = st[u'result'][u'remoteMeta']
-		album = rm[u'album']
-		artist = rm[u'artist']
-		title = rm[u'title']
-		print 'playing: ', artist, '-', title, '-', album
+		err = st['error']
+		if (err == None):
+			rm = st[u'result'][u'remoteMeta']
+			album = rm[u'album']
+			artist = rm[u'artist']
+			title = rm[u'title']
+			print 'playing: ', artist, '-', title, '-', album
+		else:
+			print err
 		return
 
 		print self.query( "alarms", 0, 9999)
