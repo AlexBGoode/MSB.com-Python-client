@@ -44,9 +44,9 @@ class SqueezeBoxServer():
 		cookies = dict(sdi_squeezenetwork_session=self.session_id)
 		r = requests.post("http://www.mysqueezebox.com/api/v1/players", cookies=cookies)
 		resp = r.text
-		print '.'
-		print resp
-		print '.'
+#		print '.'
+#		print resp
+#		print '.'
 		pl = simplejson.loads(resp)
 		if (pl['players'] != []):
 			self.player_id = pl['players'][0]['mac']
@@ -67,24 +67,27 @@ class SqueezeBoxServer():
 
 	def play(self, *args):
 		# https://github.com/Logitech/slimserver/blob/eeeb701d7de3ae2790c359cbd67a4c438c66bf2b/Slim/Control/Request.pm#L527
-		print self.query( "mode", "?" )
-		print self.query( "sleep", "?" )
-		print self.query( "power", "?" )
+#		print self.query( "mode", "?" )
+#		print self.query( "sleep", "?" )
+#		print self.query( "power", "?" )
 		print self.query( "time", "?" )
-		print self.query( "version", "?" )
+#		print self.query( "version", "?" )
 #		print self.query( "artist", "?" )
 #		print self.query( "title", "?" )
 #		print self.query( "album", "?" )
 
 		status = self.query( "status" )
 		st = simplejson.loads(status)
+#		print st
 		err = st['error']
 		if (err == None):
+			mode = st['result']['mode']
+#			print mode
 			rm = st[u'result'][u'remoteMeta']
 			album = rm[u'album']
 			artist = rm[u'artist']
 			title = rm[u'title']
-			print 'playing: ', artist, '-', title, '-', album
+			print mode, '#', artist, '_', title, '_', album
 		else:
 			print err
 		return
